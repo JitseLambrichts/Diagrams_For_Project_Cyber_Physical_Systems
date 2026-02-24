@@ -1,0 +1,47 @@
+@startuml ComponentConnectorView
+title Component-connector view - Warehouse robots
+
+left to right direction
+
+' Robotzijde
+component "RobotController" as RC
+component "SensorsAdapter" as SA
+component "ActuatorsAdapter" as AA
+component "RobotCommAdapter" as RCA
+
+' Centraal
+component "REST API" as REST
+component "TaskQueueService" as TQS
+component "WorldModelService" as WMS
+component "MonitoringService" as MON
+database "RobotStateStore" as DB
+
+' Broker voor telemetrie (optioneel)
+component "MessageBroker" as MB
+
+' Web UI
+component "OperatorWebApp" as UI
+
+' Connecties robot
+RC -- SA : lees sensoren
+RC -- AA : stuur motorcommando's
+RC -- RCA : status + commando's
+
+' Robot <-> backend (bv. HTTP/WebSocket/MQTT)
+RCA ..> REST : HTTP (poll nieuwe taak)
+RCA ..> MB : publish telemetry
+
+' Backend intern
+REST --> TQS : beheer wachtrij
+REST --> WMS : reserveer/vrijgeven gangpad
+REST --> MON : query status
+
+TQS --> DB
+WMS --> DB
+MON --> DB
+
+' UI <-> backend
+UI -- REST : HTTP/JSON
+UI ..> MB : subscribe telemetry
+
+@enduml

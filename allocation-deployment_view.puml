@@ -1,0 +1,46 @@
+@startuml AllocationDeploymentView
+title Deployment view - Warehouse robots
+
+left to right direction
+
+node "Robot (Webots/Turtlebot)" as RobotNode {
+  node "Controller process" as CtrlProc {
+    component "RobotController\n(robot-domain)" as RC
+    component "Sim/HW Adapters\n(robot-adapters-sim)" as AD
+  }
+}
+
+cloud "WiFi / Network" as NET
+
+node "Backend Server / VM" as Backend {
+  node "Application container" as App {
+    component "central-backend-app" as CBA
+    component "central-backend-adapters" as CBAA
+  }
+
+  node "Infrastructure" as Infra {
+    database "DB\n(RobotStateStore)" as DB
+    component "MessageBroker" as MB
+  }
+}
+
+node "Operator PC" as Client {
+  node "Browser" as Browser {
+    component "web-frontend\n(OperatorWebApp)" as UI
+  }
+}
+
+' verbindingen
+RC - AD : sensor/motor IO
+CtrlProc -- NET
+
+NET -- Backend
+NET -- Client
+
+RC ..> CBAA : HTTP/WebSocket/MQTT
+UI ..> CBAA : HTTP/JSON
+CBAA ..> CBA
+CBA ..> DB
+CBA ..> MB
+
+@enduml

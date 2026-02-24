@@ -1,0 +1,59 @@
+@startuml ModuleView
+title Module view - Warehouse robots
+
+package "warehouse-domain" {
+  class Item
+  class Order
+  class Aisle
+  class Location
+  class RobotId
+  class RobotState
+}
+
+package "robot-domain" {
+  class RobotController
+  class MoveCommand
+  class RobotStateMachine
+}
+
+package "robot-ports" {
+  interface MovementPort
+  interface SensorsPort
+  interface CommPort
+  interface TimePort
+}
+
+package "robot-adapters-sim" {
+  class WebotsMovementAdapter
+  class WebotsSensorsAdapter
+  class WebotsCommAdapter
+}
+
+package "central-backend-app" {
+  class TaskQueueService
+  class WorldModelService
+  class MonitoringService
+}
+
+package "central-backend-adapters" {
+  class RestApiController
+  class PersistenceAdapter
+  class MessageBrokerAdapter
+}
+
+package "web-frontend" {
+  class OperatorUI
+}
+
+' afhankelijkheden richting domein
+"robot-domain" ..> "warehouse-domain"
+"robot-domain" ..> "robot-ports"
+"robot-adapters-sim" ..|> MovementPort
+"robot-adapters-sim" ..|> SensorsPort
+"robot-adapters-sim" ..|> CommPort
+
+"central-backend-app" ..> "warehouse-domain"
+"central-backend-adapters" ..> "central-backend-app"
+"web-frontend" ..> "central-backend-adapters"
+
+@enduml

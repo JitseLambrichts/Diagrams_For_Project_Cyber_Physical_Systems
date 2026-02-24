@@ -1,0 +1,53 @@
+@startuml BehaviouralView
+title Sequence - Robot voert pick-taak uit
+
+actor Operator
+participant "OperatorWebApp" as UI
+participant "REST API" as REST
+participant "TaskQueueService" as TQS
+participant "WorldModelService" as WMS
+participant "RobotController" as RC
+participant "RobotCommAdapter" as RCA
+participant "ActuatorsAdapter" as AA
+participant "SensorsAdapter" as SA
+
+' operator voegt item toe
+Operator -> UI : voeg item toe aan wachtrij
+UI -> REST : POST /tasks
+REST -> TQS : createTask(item)
+TQS --> REST : taakId
+REST --> UI : 201 Created
+
+== Robot vraagt taak op ==
+
+RC -> SA : lees huidige positie
+SA --> RC : positie
+
+RC -> RCA : vraag nieuwe taak
+RCA -> REST : GET /robots/{id}/nextTask
+REST -> WMS : reserveer gangpad voor taak
+WMS --> REST : OK (gangpad gereserveerd)
+REST --> RCA : taakdetails (locatie, gangpad)
+RCA --> RC : taakdetails
+
+== Robot rijdt naar locatie ==
+
+RC -> RC : plan pad naar doel
+loop elke control-cyclus
+  RC -> SA : lees sensoren
+  SA --> RC : sensorwaarden
+  RC -> AA : stuur motorcommando's
+  AA --> RC : ack
+  RC -> RCA : stuur statusupdate (locatie, state)
+end
+
+== Taak afgerond ==
+
+RC -> RCA : meld taak afgerond
+RCA -> REST : POST /robots/{id}/taskCompleted
+REST -> WMS : vrijgeven gangpad
+WMS --> REST : OK
+REST --> RCA : 200 OK
+RCA --> RC : bevestiging
+
+@enduml

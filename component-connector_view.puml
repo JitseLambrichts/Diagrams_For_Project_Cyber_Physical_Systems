@@ -23,17 +23,17 @@ component "MessageBroker" as MB
 component "OperatorWebApp" as UI
 
 ' Connecties robot
-RC -- SA : lees sensoren
-RC -- AA : stuur motorcommando's
-RC -- RCA : status + commando's
+RC -- SA : read sensors
+RC -- AA : send motor commands
+RC -- RCA : status + commands
 
 ' Robot <-> backend (bv. HTTP/WebSocket/MQTT)
-RCA ..> REST : HTTP (poll nieuwe taak)
+RCA ..> REST : HTTP (poll new task)
 RCA ..> MB : publish telemetry
 
 ' Backend intern
-REST --> TQS : beheer wachtrij
-REST --> WMS : reserveer/vrijgeven gangpad
+REST --> TQS : manage queue
+REST --> WMS : reserve/release aisle
 REST --> MON : query status
 
 TQS --> DB

@@ -12,42 +12,42 @@ participant "ActuatorsAdapter" as AA
 participant "SensorsAdapter" as SA
 
 ' operator voegt item toe
-Operator -> UI : voeg item toe aan wachtrij
+Operator -> UI : add item to queue
 UI -> REST : POST /tasks
 REST -> TQS : createTask(item)
-TQS --> REST : taakId
+TQS --> REST : taskId
 REST --> UI : 201 Created
 
-== Robot vraagt taak op ==
+== Robot requests task ==
 
-RC -> SA : lees huidige positie
-SA --> RC : positie
+RC -> SA : read current position
+SA --> RC : position
 
-RC -> RCA : vraag nieuwe taak
+RC -> RCA : request new task
 RCA -> REST : GET /robots/{id}/nextTask
-REST -> WMS : reserveer gangpad voor taak
-WMS --> REST : OK (gangpad gereserveerd)
-REST --> RCA : taakdetails (locatie, gangpad)
-RCA --> RC : taakdetails
+REST -> WMS : reserve aisle for task
+WMS --> REST : OK (aisle reserved)
+REST --> RCA : taskdetails (location, aisle)
+RCA --> RC : task details
 
-== Robot rijdt naar locatie ==
+== Robot drives to location ==
 
-RC -> RC : plan pad naar doel
-loop elke control-cyclus
-  RC -> SA : lees sensoren
-  SA --> RC : sensorwaarden
-  RC -> AA : stuur motorcommando's
+RC -> RC : plan path to goal
+loop each control-cyclus
+  RC -> SA : read sensors
+  SA --> RC : sensorvalues
+  RC -> AA : send motor commands
   AA --> RC : ack
-  RC -> RCA : stuur statusupdate (locatie, state)
+  RC -> RCA : send status update (location, state)
 end
 
-== Taak afgerond ==
+== Task completed ==
 
-RC -> RCA : meld taak afgerond
+RC -> RCA : report task completed
 RCA -> REST : POST /robots/{id}/taskCompleted
-REST -> WMS : vrijgeven gangpad
+REST -> WMS : clear the aisle
 WMS --> REST : OK
 REST --> RCA : 200 OK
-RCA --> RC : bevestiging
+RCA --> RC : clear the aisle
 
 @enduml
